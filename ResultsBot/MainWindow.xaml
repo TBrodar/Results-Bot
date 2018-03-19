@@ -1,0 +1,219 @@
+﻿<Window x:Class="ResultsBot.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns:local="clr-namespace:ResultsBot"
+        mc:Ignorable="d"
+        Closing="MainWindow_Closing" 
+        Title="PyResultsBot" Height="350" Width="525">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="Open" Executed="OpenFileMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="Save" Executed="SaveFileMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="SaveAs" Executed="SaveFileAsMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="New" Executed="NewFileMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.StartPause"  Executed="StartPause_Click"></CommandBinding>
+        <CommandBinding Command="Stop" Executed="StopMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.ShowMousePositionAndPixelColor" Executed="ShowMousePositionAndPixelColorCheckBox_Change"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.SetF1Position" Executed="SetF1Position"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.SetF2Position" Executed="SetF2Position"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.SetF3Position" Executed="SetF3Position"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.CapturePixelColor" Executed="CapturePixelColor"></CommandBinding>
+        <CommandBinding Command="local:CustomCommands.CaptureImageFromX1Y1X2Y2Rectangle" Executed="CaptureImageFromX1Y1X2Y2Positions"></CommandBinding>
+        <CommandBinding Command="Help" Executed="HelpButton"></CommandBinding>
+
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="O" Modifiers="Control" Command="Open"></KeyBinding>
+        <KeyBinding Key="S" Modifiers="Control" Command="Save"></KeyBinding>
+        <KeyBinding Key="S" Modifiers="Ctrl+Alt" Command="SaveAs"></KeyBinding>
+        <KeyBinding Key="N" Modifiers="Control" Command="New"></KeyBinding>
+        <KeyBinding  Command="local:CustomCommands.StartPause"></KeyBinding>
+        <KeyBinding Key="Esc" Command="Stop"></KeyBinding>
+
+        <KeyBinding  Command="local:CustomCommands.CaptureImageFromX1Y1X2Y2Rectangle"></KeyBinding>
+        <KeyBinding  Command="local:CustomCommands.SetF1Position"></KeyBinding>
+        <KeyBinding  Command="local:CustomCommands.SetF2Position"></KeyBinding>
+        <KeyBinding  Command="local:CustomCommands.SetF3Position"></KeyBinding>
+        <KeyBinding  Command="local:CustomCommands.CapturePixelColor"></KeyBinding>
+        <KeyBinding  Command="local:CustomCommands.CaptureImageFromX1Y1X2Y2Rectangle"></KeyBinding>
+
+
+    </Window.InputBindings>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" Name="ConsoleHeightDefinition"/>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Menu Grid.Column="0" Grid.ColumnSpan="6" Grid.Row="0">
+            <MenuItem Header="File" >
+                <MenuItem Name="NewFileMenuItem" Header="New file" Command="New" />
+                <MenuItem Name="LoadFileMenuItem" Header="Open file" Command="Open" />
+                <Separator />
+                <MenuItem Header="Save file" Name="SaveFileMenuItem" Command="Save"/>
+                <MenuItem Header="Save file as" Name="SaveFileAsMenuItem"  Command="SaveAs" InputGestureText="Ctrl+Alt+S" />
+                <Separator />
+                <MenuItem Header="Exit" Name="ExitMenuItem" Click="ExitMenuItem_Click" InputGestureText="Alt+F4" />
+            </MenuItem>
+            <MenuItem Header="Run">
+                <MenuItem Name="StartMenuItem" Header="Start/Pause on checkpoint" Command="local:CustomCommands.StartPause"/>
+                <MenuItem Name="StopMenuItem" Header="Stop on checkpoint"  Command="Stop" />
+            </MenuItem>
+            <MenuItem Header="Set up">
+                <MenuItem Name="SetF1PositionMenuItem"  Command="local:CustomCommands.SetF1Position" >
+                    <MenuItem.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Set " Grid.Column="0" Grid.Row="0" />
+                            <TextBox Name="F1TextBox" Text="xy" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Grid.Row="0" />
+                            <Label Content=": [x,y] position" Grid.Column="2" Grid.Row="0" />
+                        </Grid>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem Name="SetF2PositionMenuItem"  Command="local:CustomCommands.SetF2Position">
+                    <MenuItem.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Set " Grid.Column="0" Grid.Row="0" />
+                            <TextBox Name="F2TextBox" Text="x1y1" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Grid.Row="0" />
+                            <Label Content=": [x,y] position" Grid.Column="2" Grid.Row="0" />
+                        </Grid>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem Name="SetX2Y2PositionMenuItem"  Command="local:CustomCommands.SetF3Position" >
+                    <MenuItem.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Content="Set " Grid.Column="0" Grid.Row="0" />
+                        <TextBox Name="F3TextBox" Text="x2y2" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Grid.Row="0" />
+                        <Label Content=": [x,y] position" Grid.Column="2" Grid.Row="0" />
+                    </Grid>
+                </MenuItem.Header>
+            </MenuItem>
+                <MenuItem Name="CaptureImageMenuItem"  Command="local:CustomCommands.CaptureImageFromX1Y1X2Y2Rectangle">
+                    <MenuItem.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Save screen portion to " Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" />
+                            <TextBox Name="CapturedScreenName" Text="Image" VerticalAlignment="Center" MinWidth="50" Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2" />
+                            <Label Content="From position " Grid.Column="0" Grid.Row="1" />
+                            <TextBox Name="Position1TextBox" Text="x1y1" Grid.Column="1" Grid.Row="1" MinWidth="50" VerticalAlignment="Center"/>
+                            <Label Content="to position" Grid.Column="2" Grid.Row="1" />
+                            <TextBox Name="Position2TextBox" Text="x2y2" Grid.Column="3" Grid.Row="1" MinWidth="50" VerticalAlignment="Center"  />
+                        </Grid>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem Name="CapturePixelColorMenuItem"  Command="local:CustomCommands.CapturePixelColor">
+                    <MenuItem.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Capture color from pixel on mouse" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"/>
+                            <Label Content="position to "  Grid.Column="0" Grid.Row="1"/>
+                            <TextBox Name="PixelColorName" Text="PixelColor" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Grid.Row="1"/>
+                        </Grid>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem Command="local:CustomCommands.ShowMousePositionAndPixelColor" >
+                    <MenuItem.Header>
+                        <Grid>
+                            <CheckBox Name="ShowMousePositionAndPixelColorCheckBox" Content="Show mouse position and pixel color on\n mouse position" Checked="ShowMousePositionAndPixelColor" Unchecked="ShowMousePositionAndPixelColor" />
+                        </Grid>
+                    </MenuItem.Header>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Help" Command="Help" />
+        </Menu>
+
+        <TabControl Name="tabDynamic" ItemsSource="{Binding}" SelectionChanged="tabDynamic_SelectionChanged" Grid.Column="0" Grid.ColumnSpan="6" Grid.Row="2" Margin="2,2,2,2">
+            <TabControl.Resources>
+                <DataTemplate x:Key="TabHeader" DataType="TabItem">
+                    <Grid >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:TabItemAndEngineClass}}, Path=Header}" Grid.Column="0" />
+                        <TextBlock Grid.Column="1" Text="*" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:TabItemAndEngineClass}}, Path=IsEdited, Converter={StaticResource booleanToVisibilityConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text=" " Grid.Column="2" />
+                        <Image Name="StartImageTab" Source="Images\start.png" Height="17" Width="17" Grid.Column="3" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:TabItemAndEngineClass}}, Path=IsAlive, Converter={StaticResource booleanToVisibilityConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Image Name="PauseImageTab" Source="Images\pause.png" Height="17" Width="17" Grid.Column="4" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:TabItemAndEngineClass}}, Path=IsPaused, Converter={StaticResource booleanToVisibilityConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Image Name="CloseTab" Source="Images\x.png" Height="11" Width="11" DockPanel.Dock="Right" MouseUp="CloseTab_MouseUp" Grid.Column="5"/>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.Resources>
+        </TabControl>
+        
+        <ToggleButton Name="ShowConsoleToggleButton" Content="Show output" Grid.Row="3" Grid.Column="0" Margin="2,2,2,2" Click="ShowConsoleToggleButton_Click"/>
+        <CheckBox Content="Save to log file: "  Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Margin="2,5,2,2" HorizontalAlignment="Right" Name="LogFileCheckBox" Checked="LogFileCheckBox_Checked" Unchecked="LogFileCheckBox_Checked"/>
+        <TextBox Name="LogFileTextBox"  Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="2" Margin="2,2,2,2" />
+        <TextBox Name="ConsoleTextBox" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" Visibility="Collapsed" Margin="2,2,2,2" />
+
+        <StatusBar  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="6" >
+            <StatusBarItem>
+                <TextBlock Name="StatusBarTextBlock" Text="---" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+    
+</Window>
