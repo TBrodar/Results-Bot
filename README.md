@@ -1,4 +1,4 @@
-﻿![Screen shot](https://github.com/TBrodar/Results-Bot/tree/master/ResultsBot/ResultsBot.png)
+﻿![Screen shot](https://github.com/TBrodar/Results-Bot/blob/master/ResultsBot.png)
 
 Purpose of ResultsBot software is to simplfy making of automatization software in python
 and running that code. Example: Controling temperature controler/arduino via USB or some
