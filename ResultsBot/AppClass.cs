@@ -37,14 +37,22 @@ namespace ResultsBot
         {
 
         }
+
+        public static void ClearConsoleOutput()
+        {
+            return ;
+        }
+
         [STAThread]
         public static bool SetClipboardText(string text)
         {
 			try { 
             System.Windows.Clipboard.SetText(text);
-			} catch (Exception)
+			} catch (Exception e)
 			{
-				return false;
+                string mesg = "SetClipboardText(text) failed. Probably OS - C# internal error."
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
         }

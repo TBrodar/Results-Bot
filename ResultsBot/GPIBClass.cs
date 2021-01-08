@@ -23,7 +23,7 @@ namespace ResultsBot
 
 		private static List<OpenDeviceClass> OpenedDevices = new List<OpenDeviceClass>();
 
-		public static bool OpenDeviceFromDictionaryValues(IronPython.Runtime.PythonDictionary Device)
+		public static IronPython.Runtime.PythonDictionary OpenDeviceFromDictionaryValues(IronPython.Runtime.PythonDictionary Device)
 		{
 			try
 			{
@@ -41,7 +41,7 @@ namespace ResultsBot
 					int BoardID = (int)Device.values()[arguments.IndexOf("BoardID".ToLower())];
 					int PrimaryAddress = (int)Device.values()[arguments.IndexOf("PrimaryAddress".ToLower())];
 					int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
-					string terminator = (string)Device.values()[arguments.IndexOf("terminator".ToLower())];
+					string terminator = (string)Device.values()[arguments.IndexOf("Terminator".ToLower())];
 					return OpenDeviceAndSetLineTerminator(BoardID, PrimaryAddress, SecondaryAddress, terminator);
 				}
 				else
@@ -51,40 +51,44 @@ namespace ResultsBot
 					int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
 					return OpenDevice(BoardID, PrimaryAddress, SecondaryAddress);
 				}
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				//MessageBox.Show("Error occured while opening GPIB device. Are used Device dictionary values ok? (int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator)", "Error: GPIB Open function with dictionary argument");
 				string mesg = "Error: GPIB Open function with dictionary argument. Error occured while opening GPIB device. Are used Device dictionary values ok? (int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator)";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return new IronPython.Runtime.PythonDictionary();
 			}
 		}
-		public static bool OpenDeviceAndSetLineTerminator(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator)
+		public static IronPython.Runtime.PythonDictionary OpenDeviceAndSetLineTerminator(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator)
 		{
-			bool s = OpenDevice(BoardID, PrimaryAddress, SecondaryAddress);
-			if (s == false) return false;
+            IronPython.Runtime.PythonDictionary s = OpenDevice(BoardID, PrimaryAddress, SecondaryAddress);
+			if (s.Count == 0) return s;
 			s = SetTerminatorForDevice(BoardID, PrimaryAddress, SecondaryAddress, terminator);
-			if (s == false) return false;
-			return true;
+			return s;
 		}
-		public static bool OpenDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
+		public static IronPython.Runtime.PythonDictionary OpenDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
 		{
-			try {
-				if (PrimaryAddress < 0 || PrimaryAddress > 256)
+			
+                IronPython.Runtime.PythonDictionary deviceList = new IronPython.Runtime.PythonDictionary();
+            try
+            {
+                if (PrimaryAddress < 0 || PrimaryAddress > 256)
 				{
 					MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 					"Error: Set PrimaryAddress in range 0,1,2,...,256");
-					return false;
+                    
+					return deviceList;
 				}
 				if (SecondaryAddress != 0 && (SecondaryAddress < 96 || SecondaryAddress > 126))
 				{
 					string mesg = "Error: For SecondaryAddress set value 0 or value in range 96,97,...,126.";
 					MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
-	mesg);
+	                mesg);
 					MainWindow.consoleWriter.WriteLine(mesg);
-					return false;
+					return deviceList;
 				}
 				foreach (OpenDeviceClass d in OpenedDevices)
 			{
@@ -92,27 +96,36 @@ mesg);
 				{
 						string mesg = "Info: GPIB device is allready open.";
 						MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
-		mesg);
+		                mesg);
 						MainWindow.consoleWriter.WriteLine(mesg);
-						return false;
+						return deviceList;
 					}
 			}
-			var device = new Device(BoardID, (byte)PrimaryAddress, (byte)SecondaryAddress);
+            
+                var device = new Device(BoardID, (byte)PrimaryAddress, (byte)SecondaryAddress);
 			//device.SynchronizeCallbacks = true;
 			device.IOTimeout = TimeoutValue.T10ms;
 			OpenedDevices.Add(new OpenDeviceClass() { boardID = BoardID, device = device });
-			} catch (Exception ex)
+            deviceList.Add(new KeyValuePair<object, object>(BoardIDString, BoardID));
+            deviceList.Add(new KeyValuePair<object, object>(PrimaryAddressString, PrimaryAddress));
+            deviceList.Add(new KeyValuePair<object, object>(SecondaryAddressString, SecondaryAddress));
+            } catch (Exception ex)
 			{
 				string mesg = "Error: Exception heppend while opening GPIB device.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
-mesg);
+                mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + ex.Message + "\n" + ex.StackTrace);
+                return deviceList;
 			}
-			return true;
+			return deviceList;
 		}
+        private static string BoardIDString = "BoardID";
+        private static string PrimaryAddressString = "PrimaryAddress";
+        private static string SecondaryAddressString = "SecondaryAddress";
+        private static string TerminatorString = "Terminator";
 
-		public static bool CloseDeviceFromDictionary(IronPython.Runtime.PythonDictionary Device)
+        public static bool CloseDeviceFromDictionary(IronPython.Runtime.PythonDictionary Device)
 		{
 			try
 			{
@@ -125,14 +138,15 @@ mesg);
 				int PrimaryAddress = (int)Device.values()[arguments.IndexOf("PrimaryAddress".ToLower())];
 				int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
 				return CloseDevice(BoardID, PrimaryAddress, SecondaryAddress);
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				//MessageBox.Show("Exception occured while closing GPIB device. Check if Device python dictionary values are ok. Check if there are other reasons why exception could be thrown.", "Error: GPIB close function with dictionary argument");
 				string mesg = "Error: GPIB close function with dictionary argument. Exception occured while closing GPIB device. Check if Device python dictionary values are ok. Check if there are other reasons why exception could be thrown.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 		}
 		public static bool CloseDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
@@ -148,20 +162,21 @@ mesg);
 						return true;
 					}
 				}
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: GPIB close function bool Close(int BoardID, int PrimaryAddress, int SecondaryAddress). Exception occured while closing GPIB device.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return false;
 		}
 
-		public static bool SetTerminatorForDeviceInDictionary(IronPython.Runtime.PythonDictionary Device)
+		public static IronPython.Runtime.PythonDictionary SetTerminatorForDeviceInDictionary(IronPython.Runtime.PythonDictionary Device)
 		{
-			try
+            try
 			{
 				List<string> arguments = (List<string>)(Device.Keys);
 				if (arguments.Contains("BoardID".ToLower()) == false || arguments.Contains("SecondaryAddress".ToLower()) == false || arguments.Contains("PrimaryAddress".ToLower()) == false)
@@ -174,35 +189,43 @@ mesg);
 				string terminator = (string)Device.values()[arguments.IndexOf("terminator".ToLower())];
 				return SetTerminatorForDevice(BoardID, PrimaryAddress, SecondaryAddress, terminator);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: GPIB SetTerminator function with dictionary argument. Exception occured while setting terminator for GPIB device. Check if Device python dictionary values are ok. Check if there are other reasons why exception could be thrown.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return new IronPython.Runtime.PythonDictionary();
 			}
 		}
-		public static bool SetTerminatorForDevice(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator)
+		public static IronPython.Runtime.PythonDictionary SetTerminatorForDevice(int BoardID, int PrimaryAddress, int SecondaryAddress, string Terminator)
 		{
-		try {
+            IronPython.Runtime.PythonDictionary deviceList = new IronPython.Runtime.PythonDictionary();
+
+        try {
 			foreach (OpenDeviceClass d in OpenedDevices)
 			{
 				if (d.boardID == BoardID && d.device.PrimaryAddress == PrimaryAddress && d.device.SecondaryAddress == SecondaryAddress)
 				{
-					d.terminator = terminator;
-					return true;
-				}
+					d.terminator = Terminator;
+                    deviceList.Add(new KeyValuePair<object, object>(BoardIDString, BoardID));
+                    deviceList.Add(new KeyValuePair<object, object>(PrimaryAddressString, PrimaryAddress));
+                    deviceList.Add(new KeyValuePair<object, object>(SecondaryAddressString, SecondaryAddress));
+                    deviceList.Add(new KeyValuePair<object, object>(TerminatorString, Terminator));
+                    return deviceList;
+                }
 			}
-		} catch (Exception)
+		} catch (Exception e)
 			{
 				string mesg = "Error: GPIB SetTerminator function bool SetTerminator(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator).";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return deviceList;
 			}
-			return false;
+			return deviceList;
 		}
 
 		public static string GetTerminatorForDeviceInDictionary(IronPython.Runtime.PythonDictionary Device)
@@ -219,13 +242,14 @@ mesg);
 				int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
 				return GetTerminatorForDevice(BoardID, PrimaryAddress, SecondaryAddress);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: GPIB SetTerminator function with dictionary argument. Exception occured while setting terminator for GPIB device. Check if Device python dictionary keys/values are ok. If dictionary keys/values are ok, check if there is another reason why exception could be thrown.\nInfo: GetTerminator returned null value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return null;
 			}
 		}
 		public static string GetTerminatorForDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
@@ -239,13 +263,14 @@ mesg);
 						return d.terminator;
 					}
 				}
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: GPIB GetTerminator function string GetTerminator(int BoardID, int PrimaryAddress, int SecondaryAddress).\nInfo: GetTerminator returned null value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return null;
 			}
 			return "";
 		}
@@ -264,13 +289,14 @@ mesg);
 				int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
 				return WriteLineToDevice(BoardID, PrimaryAddress, SecondaryAddress, text);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: GPIB WriteLine function with dictionary argument. Exception occured while writing text to GPIB device. Check if Device python dictionary keys/values are ok. If dictionary keys/values are ok, check if there is another reason why exception could be thrown.\nInfo: WriteLine returned false value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 		}
 		public static bool WriteLineToDevice(int BoardID, int PrimaryAddress, int SecondaryAddress, string text)
@@ -284,13 +310,14 @@ mesg);
 						d.device.Write(text + d.terminator);
 					}
 				}
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: GPIB WriteLine function bool WriteLine(int BoardID, int PrimaryAddress, int SecondaryAddress, string text). Check what is the reason why exception could be thrown.\nInfo: WriteLine returned false value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
 		}
@@ -309,13 +336,14 @@ mesg);
 				int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
 				return ReadLineFromDevice(BoardID, PrimaryAddress, SecondaryAddress);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: GPIB ReadLine function with dictionary argument string ReadLine(IronPython.Runtime.PythonDictionary Device). Exception occured while reading string from GPIB device. Check if Device python dictionary keys/values are ok. If dictionary keys/values are ok, check if there is another reason why exception could be thrown.\nInfo: ReadLine returned null value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return null;
 			}
 		}
 		public static string ReadLineFromDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
@@ -350,13 +378,14 @@ mesg);
 			catch (TimeoutException)
 			{
 				return "";
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: GPIB ReadLine function string ReadLine(int BoardID, int PrimaryAddress, int SecondaryAddress). Exception occured while reading string from GPIB device. Check if there is reason why exception could be thrown.\nInfo: ReadLine returned null value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return null;
 			}
 			return "";
 		}
@@ -375,13 +404,14 @@ mesg);
 				int SecondaryAddress = (int)Device.values()[arguments.IndexOf("SecondaryAddress".ToLower())];
 				return ReadCharFromDevice(BoardID, PrimaryAddress, SecondaryAddress);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: GPIB ReadChar function with dictionary argument string ReadChar(IronPython.Runtime.PythonDictionary Device). Exception occured while reading char from GPIB device. Check if Device python dictionary keys/values are ok. If dictionary keys/values are ok, check if there is another reason why exception could be thrown.\nInfo: ReadChar returned null value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return null;
 			}
 		}
 		public static string ReadCharFromDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
@@ -399,13 +429,14 @@ mesg);
 			catch (TimeoutException)
 			{
 				return "";
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: GPIB ReadChar function string ReadChar(int BoardID, int PrimaryAddress, int SecondaryAddress). Exception occured while reading char from GPIB device. Check if there is reason why exception could be thrown.\nInfo: ReadChar returned null value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return null;
 			}
 			return "";
 		}

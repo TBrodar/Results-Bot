@@ -26,13 +26,14 @@ namespace ResultsBot
 				{
 					KeyboardSimulator.KeyPress((Keys)c);
 				}
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: Exception occured while executing bool Write(string ASCIItext) function. Check if all characters are alphanumeric or if using KeyboardSimulator class works correctly.\nInfo: KeyDown function returned value false";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
         }
@@ -47,13 +48,14 @@ mesg);
 						KeyboardSimulator.KeyDown(s);
 					}
 				}
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: Exception occured while executing bool KeyDown(string c) function.\nInfo: KeyDown function returned value false";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
 		}
@@ -68,13 +70,14 @@ mesg);
 					}
 				}
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: Exception occured while executing bool KeyUp(string c) function.\nInfo: KeyUp function returned value false";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
 		}
@@ -91,13 +94,14 @@ mesg);
 					}
 				}
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: Exception occured while executing bool KeyPress(string c) function.\nInfo: KeyPress function returned value false";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return false;
 		}

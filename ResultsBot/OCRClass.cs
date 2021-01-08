@@ -36,13 +36,7 @@ namespace ResultsBot
             }
             } catch (Exception e)
             {
-                if (e.InnerException != null)
-                {
-                    MessageBox.Show(e.ToString() + "\n" + e.InnerException, "Tesseract error");
-                } else
-                {
-                    MessageBox.Show(e.ToString(), "Tesseract error");
-                }
+                throw new Exception("Tesseract error (OS does not support Tesseract or something else):" + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
                 return "";
             }
             return ocrtext;

@@ -97,13 +97,13 @@ namespace ResultsBot
 			{
 
 				mySerialPort.Open();
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: Can't open port \"" + PortName + "\". OpenPort returned false value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
 			}
             OpenSerialPorts.Add(mySerialPort);
 			return true;
@@ -184,13 +184,13 @@ mesg);
             catch (TimeoutException)
             {
                 return false;
-            } catch (Exception)
+            } catch (Exception e)
 			{
 				string mesg = "Error: SerialPort.Write function throwed exception. USB.Write function returned value false.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 	mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
 			}
         }
 
@@ -224,13 +224,14 @@ mesg);
             } catch (TimeoutException)
             {
                 return false;
-            } catch (Exception)
+            } catch (Exception e)
 			{
 				string mesg = "Error: SerialPort.WriteLine throwed exception. USB.WriteLine function returned false value.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 	mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+
 			}
         }
     

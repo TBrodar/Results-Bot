@@ -15,13 +15,14 @@ namespace ResultsBot
 				MouseSimulator.X = (int)Position[0];
 				MouseSimulator.Y = (int)Position[1];
 				return true;
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: Exception occured while execution SetCursorPosition(IronPython.Runtime.List Position) function. Check if list contains two integer values. \nAnother source of exception could be in MouseSimulator.X or MouseSimulator.Y set function. \nInfo: SetCursorPosition function returned value false";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 		}
 		static public bool SetCursorOnDictionaryPosition(IronPython.Runtime.PythonDictionary Cordinates)
@@ -44,13 +45,15 @@ mesg);
 			try { 
             return new IronPython.Runtime.List { MouseSimulator.X, MouseSimulator.Y };
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: Mouse.GetCursorPosition failed at execution. Get function of MouseSimulator.X or MouseSimulator.Y throwed exception.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return null;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+
+                return null;
 			}
 
 		}
@@ -79,13 +82,14 @@ mesg);
 			try { 
             MouseSimulator.Click(b);
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
 				string mesg = "Error: Mouse.Click failed at execution. MouseSimulator.Click throwed exception.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
         }
@@ -115,13 +119,14 @@ mesg);
 			try
 			{
 				MouseSimulator.DoubleClick(b);
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: Mouse.DoubleClick failed at execution. MouseSimulator.DoubleClick throwed exception.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
         }
@@ -130,13 +135,14 @@ mesg);
         {
 			try { 
             MouseSimulator.MouseWheel(delta);
-			} catch (Exception)
+			} catch (Exception e)
 			{
 				string mesg = "Error: Mouse.Wheel failed at execution. MouseSimulator.Wheel throwed exception.";
 				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
 mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
-				return false;
+                throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
+                return false;
 			}
 			return true;
 		}

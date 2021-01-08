@@ -105,6 +105,8 @@ namespace ResultsBot
             App.SetStatus = new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus);
             App.SetClipboardText = new StringDelegate(AppClass.SetClipboardText);
             App.GetClipboardText = new ReturnStringDelegate(AppClass.GetClipboardText);
+            App.ClearConsoleOutput = new VoidDelegate(() => {
+                MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new VoidDelegate(() => { MainWindow.MainWindowInstance.ConsoleTextBox.Clear(); }) ); });
             return App;
         }
         
@@ -119,21 +121,24 @@ namespace ResultsBot
             return Keyboard;
         }
 
-		delegate bool OpenDeviceAndSetLineTerminatorDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator);
-		delegate bool OpenDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
-		delegate string StringReturnDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
+		delegate IronPython.Runtime.PythonDictionary OpenDeviceAndSetLineTerminatorDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator);
+		delegate IronPython.Runtime.PythonDictionary OpenDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
+        delegate bool CloseDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
+        delegate string StringReturnDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
 		delegate string StringReturnDictionaryDelegate(IronPython.Runtime.PythonDictionary dict);
 		delegate bool WriteLineToDeviceInDictionaryDelegate(IronPython.Runtime.PythonDictionary Device, string text);
 		delegate bool WriteLineToDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string text);
-		public object CreateGPIBProxy()
+        delegate IronPython.Runtime.PythonDictionary DictionaryDelegateDictionary(IronPython.Runtime.PythonDictionary dictionary);
+
+        public object CreateGPIBProxy()
 		{
 			dynamic GPIB = new ExpandoObject();
-			GPIB.OpenDeviceFromDictionaryValues = new DictionaryDelegate(GPIBClass.OpenDeviceFromDictionaryValues);
+			GPIB.OpenDeviceFromDictionaryValues = new DictionaryDelegateDictionary(GPIBClass.OpenDeviceFromDictionaryValues);
 			GPIB.OpenDeviceAndSetLineTerminator = new OpenDeviceAndSetLineTerminatorDelegate(GPIBClass.OpenDeviceAndSetLineTerminator);
 			GPIB.OpenDevice = new OpenDeviceDelegate(GPIBClass.OpenDevice);
 			GPIB.CloseDeviceFromDictionary = new DictionaryDelegate(GPIBClass.CloseDeviceFromDictionary);
-			GPIB.CloseDevice = new OpenDeviceDelegate(GPIBClass.CloseDevice);
-			GPIB.SetTerminatorForDeviceInDictionary = new DictionaryDelegate(GPIBClass.SetTerminatorForDeviceInDictionary);
+			GPIB.CloseDevice = new CloseDeviceDelegate(GPIBClass.CloseDevice);
+			GPIB.SetTerminatorForDeviceInDictionary = new DictionaryDelegateDictionary(GPIBClass.SetTerminatorForDeviceInDictionary);
 			GPIB.SetTerminatorForDevice = new OpenDeviceAndSetLineTerminatorDelegate(GPIBClass.SetTerminatorForDevice);
 			GPIB.GetTerminatorForDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.GetTerminatorForDeviceInDictionary);
 			GPIB.GetTerminatorForDevice = new StringReturnDeviceDelegate(GPIBClass.GetTerminatorForDevice);
@@ -172,7 +177,7 @@ namespace ResultsBot
 
             return Mouse;
         }
-
+        public delegate IronPython.Runtime.List StringStringDelegateList(string s1, string s2);
         public object CreateScreenProxy()
         {
             dynamic Screen = new ExpandoObject();
@@ -181,9 +186,12 @@ namespace ResultsBot
             Screen.SaveCaptureScreenPortionTo = new SaveCaptureScreenPortionToDelegate( (x,y,z) => { ScreenClass.SaveLoadDirectory = DataSavePath; return ScreenClass.SaveCaptureScreenPortionTo(x,y,z); });
             Screen.GetPixelColorAt = new ReturnIntArrayIntDelegate((x) => { return ScreenClass.GetPixelColorAt(x); });
             Screen.GetScreenDimensions = new ReturnListDelegate( () => { return ScreenClass.GetScreenDimensions(); });
+            Screen.Find = new StringStringDelegateList((x,y) => {
+                ScreenClass.SaveLoadDirectory = DataSavePath;
+                return ScreenClass.Find(x,y); });
             return Screen;
         }
-
+       
         public object CreateOCRProxy()
         {
             dynamic OCR = new ExpandoObject();
