@@ -1,4 +1,6 @@
-﻿Purpose of PyResultsBot software is to simplfy making of automatization software in python
+﻿![Screen shot](https://github.com/TBrodar/Results-Bot/tree/master/ResultsBot/ResultsBot.png)
+
+Purpose of ResultsBot software is to simplfy making of automatization software in python
 and running that code. Example: Controling temperature controler/arduino via USB or some
 measurement device via GPIB or using another program by sending mouse/keyboard events. 
 
@@ -6,13 +8,14 @@ Requirements:
 - 4.0 Net framework is required
 - visual c++ 2008 redistributable for optical character recognition (OCR) (if missing, exception will be thrown when OCR is used)
 - NI488.2 GPIB drivers for GPIB communication (if missing, exception will be thrown when GPIB is used)
+- NI VISA drivers for VISA communication (if missing, exception will be thrown when VISA is used)
 
 Useage:
 - Write code in IronPython code editor
 - By using set up menu item fill python dictionary, which describes GUI object (like button),
   with object screen position info. [x,y] values are used in click events
   and image capture.
-- Mouse, Keyboard, App, Screen, USB, OCR and GPIB are avaliable globaly and provide
+- Mouse, Keyboard, App, Screen, USB, OCR, GPIB and VISA are avaliable globaly and provide
   usefull functions implemened in C#. You can put additional python modules in Lib/site-packages directory
   for additional functions not allready avaliable by default in iron python.
 - Use other functions implemented in python for other stuff, such as time.sleep for adding delays, threading for multitasking etc...
