@@ -104,7 +104,7 @@ mesg);
             
                 var device = new Device(BoardID, (byte)PrimaryAddress, (byte)SecondaryAddress);
 			//device.SynchronizeCallbacks = true;
-			device.IOTimeout = TimeoutValue.T10ms;
+			device.IOTimeout = TimeoutValue.T1000s;
 			OpenedDevices.Add(new OpenDeviceClass() { boardID = BoardID, device = device });
             deviceList.Add(new KeyValuePair<object, object>(BoardIDString, BoardID));
             deviceList.Add(new KeyValuePair<object, object>(PrimaryAddressString, PrimaryAddress));
@@ -308,18 +308,18 @@ mesg);
 					if (d.boardID == BoardID && d.device.PrimaryAddress == PrimaryAddress && d.device.SecondaryAddress == SecondaryAddress)
 					{
 						d.device.Write(text + d.terminator);
+                        return true;
 					}
 				}
 			} catch (Exception e)
 			{
 				string mesg = "Error: GPIB WriteLine function bool WriteLine(int BoardID, int PrimaryAddress, int SecondaryAddress, string text). Check what is the reason why exception could be thrown.\nInfo: WriteLine returned false value.";
-				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
-mesg);
+				MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus), mesg);
 				MainWindow.consoleWriter.WriteLine(mesg);
                 throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
                 return false;
 			}
-			return true;
+            return false;
 		}
 
 		public static string ReadLineFromDeviceInDictionary(IronPython.Runtime.PythonDictionary Device)
@@ -349,29 +349,12 @@ mesg);
 		public static string ReadLineFromDevice(int BoardID, int PrimaryAddress, int SecondaryAddress)
 		{
 			try
-			{
-				string output = "";
-				string s = "";
+			{ 
 				foreach (OpenDeviceClass d in OpenedDevices)
 				{
 					if (d.boardID == BoardID && d.device.PrimaryAddress == PrimaryAddress && d.device.SecondaryAddress == SecondaryAddress)
 					{
-						s = d.device.ReadString(1);
-						if (d.terminator != "")
-						{
-							if (s == d.terminator)
-							{
-								return output;
-							}
-						} else
-						{
-							string mesg = "Info: GPIB device terminator is \"\", ReadLine() will return only one char like ReadChar()";
-							MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
-			mesg);
-							MainWindow.consoleWriter.WriteLine(mesg);
-							return s;
-						}
-						output += s;
+                        return d.device.ReadString();
 					}
 				}
 			}

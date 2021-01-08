@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mono.Options;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -21,6 +22,7 @@ namespace ResultsBot
         [STAThread]
         static void Main()
         {
+
             MainWindow window = new MainWindow();
             App app = new App();
             app.Run(window);

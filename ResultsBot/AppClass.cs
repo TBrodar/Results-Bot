@@ -50,7 +50,7 @@ namespace ResultsBot
             System.Windows.Clipboard.SetText(text);
 			} catch (Exception e)
 			{
-                string mesg = "SetClipboardText(text) failed. Probably OS - C# internal error."
+                string mesg = "SetClipboardText(text) failed. Probably OS - C# internal error.";
                 throw new Exception(mesg + "\n\nInternal message:\n" + e.Message + "\n" + e.StackTrace);
                 return false;
 			}

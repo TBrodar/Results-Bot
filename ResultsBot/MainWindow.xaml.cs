@@ -15,6 +15,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System.Windows.Input;
+using Mono.Options;
 
 namespace ResultsBot
 {
@@ -35,7 +36,7 @@ namespace ResultsBot
 
 		public MainWindow()
         {
-            
+
             WorkingDirectory = string.Copy(Environment.CurrentDirectory);
             WorkingDirectory = WorkingDirectory.Replace("\\", "\\\\");
             MainWindowInstance = this;
@@ -55,6 +56,43 @@ namespace ResultsBot
             SetAutoCompleteIronPythonEngine();
 			consoleWriter = new TextBoxWriter(ConsoleTextBox);
 			Console.SetOut(TextWriter.Synchronized(consoleWriter));
+
+
+            bool help = false;
+            string file = "";
+            OptionSet option_set = new OptionSet()
+            .Add("?|help|h", "Prints out the help.", option => help = true)
+            .Add("f=|file=",
+               "Opens python code with specified path.",
+               option => file = option)
+            ;
+            string[] args = Environment.GetCommandLineArgs();
+            try
+            {
+                option_set.Parse(args);
+            }
+            catch (OptionException)
+            {
+            }
+
+            if (help)
+            {
+                consoleWriter.WriteLine("f=PATH or file=PATH");
+                consoleWriter.WriteLine("Opens python code with specified path. ");
+            }
+
+            if (file != "")
+            {
+                try
+                {
+                    using (StreamReader reader = new StreamReader(file))
+                    {
+                        this.AddTabItem(Path.GetFileName(file), file, reader.ReadToEnd());
+                    }
+                    consoleWriter.WriteLine("ResultsBot.exe -file="+file);
+                }
+                catch (Exception e7) { MessageBox.Show(e7.Message); }
+            }
         }
 
         private TabItemAndEngineClass AddTabItem(string Name, string FilePath, string Text)
@@ -161,9 +199,16 @@ namespace ResultsBot
 						data.Add(new MyCompletionData(p.name, p.doc));
 				return;
 			}
+            if (AutoCompleteObject == "VISA")
+            {
+                foreach (PairOfStrings p in MyCompletionData.GetMethods(typeof(VISAClass)))
+                    if (p.name != "ToString" && p.name != "GetType" && p.name != "GetHashCode" && p.name != "Equals")
+                        data.Add(new MyCompletionData(p.name, p.doc));
+                return;
+            }
 
-			// Search imports
-			int index = 0;
+            // Search imports
+            int index = 0;
             int start = 0;
             string line = "";
             while (index != -1)
@@ -436,6 +481,7 @@ for a in dir({0}):
             builtinscope.USB = RunningTabInstance.CreateUSBProxy();
             builtinscope.OCR = RunningTabInstance.CreateOCRProxy();
 			builtinscope.GPIB = RunningTabInstance.CreateGPIBProxy();
+            builtinscope.VISA = RunningTabInstance.CreateVISAProxy();
 
             RunningTabInstance.Engine.Runtime.IO.RedirectToConsole();
 
@@ -698,12 +744,27 @@ for a in dir({0}):
             if (saveFileDialog.ShowDialog() == true)
             {
                 File.WriteAllText(saveFileDialog.FileName, ((tabDynamic.SelectedItem as TabItemAndEngineClass).Content as ICSharpCode.AvalonEdit.TextEditor).Text);
+                //string oldFilePath = (tabDynamic.SelectedItem as TabItemAndEngineClass).FilePath;
                 (tabDynamic.SelectedItem as TabItemAndEngineClass).FilePath = saveFileDialog.FileName;
                 (tabDynamic.SelectedItem as TabItemAndEngineClass).IsEdited = false;
                 (tabDynamic.SelectedItem as TabItemAndEngineClass).Header = Path.GetFileName(saveFileDialog.FileName);
+               // copyFiles(oldFilePath, (tabDynamic.SelectedItem as TabItemAndEngineClass).FilePath);
+                
             }           
         }
-
+        private void copyFiles(string source, string destination)
+        {
+            string[] Files = System.IO.Directory.GetFiles(source);
+            foreach (var file in Files)
+            {
+                System.IO.File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+            }
+            string[] Folders = System.IO.Directory.GetDirectories(source);
+            foreach (var folder in Folders)
+            {
+                copyFiles(folder, destination);
+            }
+        }
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             MessageBoxResult result =

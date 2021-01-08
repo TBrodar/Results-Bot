@@ -231,6 +231,41 @@ mesg);
             return Points;
         }
 
+        public static IronPython.Runtime.List FindForSmall(string BmpHaystackName, string BmpNeedleName)
+        {
+            Bitmap haystack = null;
+            Bitmap needle   = null;
+            IronPython.Runtime.List Points = new IronPython.Runtime.List();
+            if (Path.HasExtension(BmpHaystackName) == false)
+            {
+                BmpHaystackName += ".bmp";
+            }
+            else { return Points; }
+            if (Path.HasExtension(BmpNeedleName) == false)
+            {
+                BmpNeedleName += ".bmp";
+            }
+            else { return Points; }
+
+
+            return Points;
+        }
+
+        public static IronPython.Runtime.List GetImageSize(string ImagePath)
+        {
+            Bitmap imageBitmap = null;
+            int width = -1;
+            int height = -1;
+            using (var image = new Bitmap(Path.Combine(SaveLoadDirectory, ImagePath)))
+            {
+                imageBitmap = new Bitmap(image);
+                var size = imageBitmap.Size;
+                width = size.Width;
+                height = size.Height;
+            }
+            return new IronPython.Runtime.List() { width, height };
+        }
+
         private static int[][] GetPixelArray(Bitmap bitmap)
         {
             var result = new int[bitmap.Height][];

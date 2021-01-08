@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace ResultsBot
 {
-   public class TabItemAndEngineClass : TabItem, INotifyPropertyChanged
+    public class TabItemAndEngineClass : TabItem, INotifyPropertyChanged
     {
         public TabItemAndEngineClass()
             : base()
@@ -22,18 +22,22 @@ namespace ResultsBot
             TaskInstance = null;
 
         }
-        
+
         public string DataSavePath = Path.Combine(MainWindow.WorkingDirectory, "Untitled");
 
         private string _FilePath = "";
-        public string FilePath { get { return _FilePath; }
-            set {
+        public string FilePath
+        {
+            get { return _FilePath; }
+            set
+            {
                 _FilePath = value;
                 string _DataSavePath;
                 if (value == "")
                 {
                     _DataSavePath = Path.Combine(MainWindow.WorkingDirectory, "Untitled");
-                } else
+                }
+                else
                 {
                     _DataSavePath = Path.Combine(Path.GetDirectoryName(value), Path.GetFileNameWithoutExtension(value));
                 }
@@ -41,19 +45,20 @@ namespace ResultsBot
                 {
                     Directory.CreateDirectory(_DataSavePath);
                 }
-                
+
                 if (Directory.Exists(DataSavePath) == true && _DataSavePath != DataSavePath)
                 {
-                   foreach (string subfolder in MainWindow.getSubFolders(DataSavePath))
+                    foreach (string subfolder in MainWindow.getSubFolders(DataSavePath))
                     {
                         if (Directory.Exists(subfolder) == false) Directory.CreateDirectory(subfolder);
                         foreach (string file in Directory.GetFiles(subfolder))
-                        File.Copy(DataSavePath, _DataSavePath);
+                            File.Copy(DataSavePath, _DataSavePath);
                         File.Delete(DataSavePath);
                     }
                 }
                 DataSavePath = _DataSavePath;
-            } }
+            }
+        }
         public Task TaskInstance { get; set; }
         public string RunningCode { get; set; }
 
@@ -65,26 +70,36 @@ namespace ResultsBot
         private bool _IsPaused;
         public bool IsPaused { get { return _IsPaused; } set { _IsPaused = value; OnPropertyChanged("IsPaused"); } }
 
-        private bool _IsAlive; 
-        public bool IsAlive { get { return _IsAlive; }
-            set {
+        private bool _IsAlive;
+        public bool IsAlive
+        {
+            get { return _IsAlive; }
+            set
+            {
                 if (_IsAlive == false && value == true)
                 {
                     ErrorCatched = "";
                 }
                 _IsAlive = value;
-                OnPropertyChanged("IsAlive"); } }
+                OnPropertyChanged("IsAlive");
+            }
+        }
 
-        private bool _IsEdited; 
+        private bool _IsEdited;
         public bool IsEdited { get { return _IsEdited; } set { _IsEdited = value; OnPropertyChanged("IsEdited"); } }
 
         private string _ErrorCatched = "";
-        public string ErrorCatched { get { return _ErrorCatched; }
-            set { _ErrorCatched = value;
+        public string ErrorCatched
+        {
+            get { return _ErrorCatched; }
+            set
+            {
+                _ErrorCatched = value;
                 if (_ErrorCatched != "")
-                MainWindow.MainWindowInstance.StatusBarTextBlock.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
-                    value);
-            } }
+                    MainWindow.MainWindowInstance.StatusBarTextBlock.Dispatcher.BeginInvoke(new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus),
+                        value);
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName = null)
@@ -98,18 +113,20 @@ namespace ResultsBot
         {
             dynamic App = new ExpandoObject();
             App.SetAliveState = new SetBoolDelegate(x => { IsAlive = x; return true; });
-            App.IsAlive   = new Func<bool>(() => { return IsAlive;  });
+            App.IsAlive = new Func<bool>(() => { return IsAlive; });
             App.GetErrorsString = new Func<string>(() => { return ErrorCatched; });
             App.SetPausedState = new SetBoolDelegate(x => { IsPaused = x; return true; });
             App.IsPaused = new Func<bool>(() => { return IsPaused; });
             App.SetStatus = new MainWindow.SetStatusDelegate(MainWindow.MainWindowInstance.SetStatus);
             App.SetClipboardText = new StringDelegate(AppClass.SetClipboardText);
             App.GetClipboardText = new ReturnStringDelegate(AppClass.GetClipboardText);
-            App.ClearConsoleOutput = new VoidDelegate(() => {
-                MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new VoidDelegate(() => { MainWindow.MainWindowInstance.ConsoleTextBox.Clear(); }) ); });
+            App.ClearConsoleOutput = new VoidDelegate(() =>
+            {
+                MainWindow.MainWindowInstance.Dispatcher.BeginInvoke(new VoidDelegate(() => { MainWindow.MainWindowInstance.ConsoleTextBox.Clear(); }));
+            });
             return App;
         }
-        
+
         public object CreateKeyboardProxy()
         {
             dynamic Keyboard = new ExpandoObject();
@@ -121,51 +138,51 @@ namespace ResultsBot
             return Keyboard;
         }
 
-		delegate IronPython.Runtime.PythonDictionary OpenDeviceAndSetLineTerminatorDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator);
-		delegate IronPython.Runtime.PythonDictionary OpenDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
+        delegate IronPython.Runtime.PythonDictionary OpenDeviceAndSetLineTerminatorDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string terminator);
+        delegate IronPython.Runtime.PythonDictionary OpenDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
         delegate bool CloseDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
         delegate string StringReturnDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress);
-		delegate string StringReturnDictionaryDelegate(IronPython.Runtime.PythonDictionary dict);
-		delegate bool WriteLineToDeviceInDictionaryDelegate(IronPython.Runtime.PythonDictionary Device, string text);
-		delegate bool WriteLineToDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string text);
+        delegate string StringReturnDictionaryDelegate(IronPython.Runtime.PythonDictionary dict);
+        delegate bool WriteLineToDeviceInDictionaryDelegate(IronPython.Runtime.PythonDictionary Device, string text);
+        delegate bool WriteLineToDeviceDelegate(int BoardID, int PrimaryAddress, int SecondaryAddress, string text);
         delegate IronPython.Runtime.PythonDictionary DictionaryDelegateDictionary(IronPython.Runtime.PythonDictionary dictionary);
 
         public object CreateGPIBProxy()
-		{
-			dynamic GPIB = new ExpandoObject();
-			GPIB.OpenDeviceFromDictionaryValues = new DictionaryDelegateDictionary(GPIBClass.OpenDeviceFromDictionaryValues);
-			GPIB.OpenDeviceAndSetLineTerminator = new OpenDeviceAndSetLineTerminatorDelegate(GPIBClass.OpenDeviceAndSetLineTerminator);
-			GPIB.OpenDevice = new OpenDeviceDelegate(GPIBClass.OpenDevice);
-			GPIB.CloseDeviceFromDictionary = new DictionaryDelegate(GPIBClass.CloseDeviceFromDictionary);
-			GPIB.CloseDevice = new CloseDeviceDelegate(GPIBClass.CloseDevice);
-			GPIB.SetTerminatorForDeviceInDictionary = new DictionaryDelegateDictionary(GPIBClass.SetTerminatorForDeviceInDictionary);
-			GPIB.SetTerminatorForDevice = new OpenDeviceAndSetLineTerminatorDelegate(GPIBClass.SetTerminatorForDevice);
-			GPIB.GetTerminatorForDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.GetTerminatorForDeviceInDictionary);
-			GPIB.GetTerminatorForDevice = new StringReturnDeviceDelegate(GPIBClass.GetTerminatorForDevice);
-			GPIB.WriteLineToDeviceInDictionary = new WriteLineToDeviceInDictionaryDelegate(GPIBClass.WriteLineToDeviceInDictionary);
-			GPIB.WriteLineToDevice = new WriteLineToDeviceDelegate(GPIBClass.WriteLineToDevice);
-			GPIB.ReadLineFromDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.ReadLineFromDeviceInDictionary);
-			GPIB.ReadLineFromDevice = new StringReturnDeviceDelegate(GPIBClass.ReadLineFromDevice);
-			GPIB.ReadCharFromDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.ReadCharFromDeviceInDictionary);
-			GPIB.ReadCharFromDevice = new StringReturnDeviceDelegate(GPIBClass.ReadCharFromDevice);
-			return GPIB;
-		}
+        {
+            dynamic GPIB = new ExpandoObject();
+            GPIB.OpenDeviceFromDictionaryValues = new DictionaryDelegateDictionary(GPIBClass.OpenDeviceFromDictionaryValues);
+            GPIB.OpenDeviceAndSetLineTerminator = new OpenDeviceAndSetLineTerminatorDelegate(GPIBClass.OpenDeviceAndSetLineTerminator);
+            GPIB.OpenDevice = new OpenDeviceDelegate(GPIBClass.OpenDevice);
+            GPIB.CloseDeviceFromDictionary = new DictionaryDelegate(GPIBClass.CloseDeviceFromDictionary);
+            GPIB.CloseDevice = new CloseDeviceDelegate(GPIBClass.CloseDevice);
+            GPIB.SetTerminatorForDeviceInDictionary = new DictionaryDelegateDictionary(GPIBClass.SetTerminatorForDeviceInDictionary);
+            GPIB.SetTerminatorForDevice = new OpenDeviceAndSetLineTerminatorDelegate(GPIBClass.SetTerminatorForDevice);
+            GPIB.GetTerminatorForDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.GetTerminatorForDeviceInDictionary);
+            GPIB.GetTerminatorForDevice = new StringReturnDeviceDelegate(GPIBClass.GetTerminatorForDevice);
+            GPIB.WriteLineToDeviceInDictionary = new WriteLineToDeviceInDictionaryDelegate(GPIBClass.WriteLineToDeviceInDictionary);
+            GPIB.WriteLineToDevice = new WriteLineToDeviceDelegate(GPIBClass.WriteLineToDevice);
+            GPIB.ReadLineFromDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.ReadLineFromDeviceInDictionary);
+            GPIB.ReadLineFromDevice = new StringReturnDeviceDelegate(GPIBClass.ReadLineFromDevice);
+            GPIB.ReadCharFromDeviceInDictionary = new StringReturnDictionaryDelegate(GPIBClass.ReadCharFromDeviceInDictionary);
+            GPIB.ReadCharFromDevice = new StringReturnDeviceDelegate(GPIBClass.ReadCharFromDevice);
+            return GPIB;
+        }
 
-		public delegate void VoidDelegate();
-		public delegate bool StringDictionaryDelegate(string s, IronPython.Runtime.PythonDictionary d);
-		public delegate IronPython.Runtime.PythonDictionary DirectoryDictionaryDelegate(IronPython.Runtime.PythonDictionary d);
-		public delegate bool SetBoolDelegate(bool value);
-		public delegate bool IntDelegate(int i);
-		public delegate IronPython.Runtime.List ReturnListDelegate();
-		public delegate bool StringDelegate(string s);
-		public delegate bool DictionaryDelegate(IronPython.Runtime.PythonDictionary Cordinates);
-		public delegate bool DictionaryStringDelegate(IronPython.Runtime.List Cordinates);
-		public delegate string ReturnStringDelegate();
-		public delegate IronPython.Runtime.PythonDictionary GetDictonaryDelegate();
-		public delegate string SaveCaptureScreenPortionToDelegate(IronPython.Runtime.List position1, IronPython.Runtime.List position2, string name);
-		public delegate IronPython.Runtime.List ReturnIntArrayIntDelegate(IronPython.Runtime.List position);
-		public delegate string ReturnStringStringDelegate(string name);
-		public object CreateMouseProxy()
+        public delegate void VoidDelegate();
+        public delegate bool StringDictionaryDelegate(string s, IronPython.Runtime.PythonDictionary d);
+        public delegate IronPython.Runtime.PythonDictionary DirectoryDictionaryDelegate(IronPython.Runtime.PythonDictionary d);
+        public delegate bool SetBoolDelegate(bool value);
+        public delegate bool IntDelegate(int i);
+        public delegate IronPython.Runtime.List ReturnListDelegate();
+        public delegate bool StringDelegate(string s);
+        public delegate bool DictionaryDelegate(IronPython.Runtime.PythonDictionary Cordinates);
+        public delegate bool DictionaryStringDelegate(IronPython.Runtime.List Cordinates);
+        public delegate string ReturnStringDelegate();
+        public delegate IronPython.Runtime.PythonDictionary GetDictonaryDelegate();
+        public delegate string SaveCaptureScreenPortionToDelegate(IronPython.Runtime.List position1, IronPython.Runtime.List position2, string name);
+        public delegate IronPython.Runtime.List ReturnIntArrayIntDelegate(IronPython.Runtime.List position);
+        public delegate string ReturnStringStringDelegate(string name);
+        public object CreateMouseProxy()
         {
             dynamic Mouse = new ExpandoObject();
             Mouse.Wheel = new IntDelegate(x => MouseClass.Wheel(x));
@@ -178,20 +195,24 @@ namespace ResultsBot
             return Mouse;
         }
         public delegate IronPython.Runtime.List StringStringDelegateList(string s1, string s2);
+        public delegate IronPython.Runtime.List StringDelegateList(string s1);
         public object CreateScreenProxy()
         {
             dynamic Screen = new ExpandoObject();
             //Screen.SaveCaptureScreen = new ReturnStringDelegate(() => { ScreenClass.SaveLoadDirectory = DataSavePath;return ScreenClass.SaveCaptureScreen(); });
             Screen.SaveCaptureScreenTo = new ReturnStringStringDelegate((x) => { ScreenClass.SaveLoadDirectory = DataSavePath; return ScreenClass.SaveCaptureScreenTo(x); });
-            Screen.SaveCaptureScreenPortionTo = new SaveCaptureScreenPortionToDelegate( (x,y,z) => { ScreenClass.SaveLoadDirectory = DataSavePath; return ScreenClass.SaveCaptureScreenPortionTo(x,y,z); });
+            Screen.SaveCaptureScreenPortionTo = new SaveCaptureScreenPortionToDelegate((x, y, z) => { ScreenClass.SaveLoadDirectory = DataSavePath; return ScreenClass.SaveCaptureScreenPortionTo(x, y, z); });
             Screen.GetPixelColorAt = new ReturnIntArrayIntDelegate((x) => { return ScreenClass.GetPixelColorAt(x); });
-            Screen.GetScreenDimensions = new ReturnListDelegate( () => { return ScreenClass.GetScreenDimensions(); });
-            Screen.Find = new StringStringDelegateList((x,y) => {
+            Screen.GetScreenDimensions = new ReturnListDelegate(() => { return ScreenClass.GetScreenDimensions(); });
+            Screen.Find = new StringStringDelegateList((x, y) =>
+            {
                 ScreenClass.SaveLoadDirectory = DataSavePath;
-                return ScreenClass.Find(x,y); });
+                return ScreenClass.Find(x, y);
+            });
+            Screen.GetImageSize = new StringDelegateList((x) => { return ScreenClass.GetImageSize(x); });
             return Screen;
         }
-       
+
         public object CreateOCRProxy()
         {
             dynamic OCR = new ExpandoObject();
@@ -207,20 +228,37 @@ namespace ResultsBot
         public delegate bool OpenPortDelegate(string PortName, int BaudRate, string Parity_None_Even_Mark_Odd_or_Space,
             string StopBits_None_One_OnePointFive_or_Two, int DataBits, string Handshake_None_RequestToSend_RequestToSendXOnXOff_or_XOnXOff,
             bool RtsEnable);
+        public delegate IronPython.Runtime.List ReturnBytes_Bytes_Delegate(IronPython.Runtime.List b1);
+        public delegate IronPython.Runtime.List ReturnBytes_BytesInt_Delegate(IronPython.Runtime.List b1, int i1);
+        public delegate string ReturnString_StringInt_Delegate(string s1, int i1);
         public object CreateUSBProxy()
         {
             dynamic USB = new ExpandoObject();
             USB.GetPortNames = new IListReturnDelegate(() => { return USBClass.GetPortNames(); });
             USB.GetOpenedPortNames = new IListReturnDelegate(() => { return USBClass.GetOpenedPortNames(); });
-            USB.OpenPort = new OpenPortDelegate((x,y,z,q,w,e,r) => USBClass.OpenPort(x, y, z, q, w, e, r));
+            USB.OpenPort = new OpenPortDelegate((x, y, z, q, w, e, r) => USBClass.OpenPort(x, y, z, q, w, e, r));
             USB.ClosePort = new StringDelegate((x) => USBClass.ClosePort(x)); //ReadLine
             USB.ReadLine = new ReturnStringStringDelegate((x) => { return USBClass.ReadLine(x); });
             USB.ReadChar = new ReturnStringStringDelegate((x) => { return USBClass.ReadChar(x); });
-            USB.WriteLine = new StringStringDelegate((x,y) => { return USBClass.WriteLine(x,y); });
+            USB.WriteLine = new StringStringDelegate((x, y) => { return USBClass.WriteLine(x, y); });
             USB.Write = new StringStringDelegate((x, y) => { return USBClass.Write(x, y); });
-            USB.SetTerminator = new SetTerminatorDelegate((x,y) => { return USBClass.SetTerminator(x, y); });
+            USB.SetTerminator = new SetTerminatorDelegate((x, y) => { return USBClass.SetTerminator(x, y); });
             USB.GetTerminator = new GetTerminatorDelegate((x) => { return USBClass.GetTerminator(x); });
             return USB;
+        }
+
+        public object CreateVISAProxy()
+        {
+            dynamic VISA = new ExpandoObject();
+            VISA.OpenSession = new StringDelegate((x) => { return VISAClass.OpenSession(x); });
+            VISA.CloseSession = new VoidDelegate(() => { VISAClass.CloseSession(); });
+            VISA.Query_String = new ReturnStringStringDelegate((x) => { return VISAClass.Query_String(x); });
+            VISA.Query_SpecificNumberOfCharacters = new ReturnString_StringInt_Delegate((x,y) => { return VISAClass.Query_SpecificNumberOfCharacters(x, y); });
+            VISA.Query_Bytes = new ReturnBytes_Bytes_Delegate((x) => { return VISAClass.Query_Bytes(x); });
+            VISA.Query_SpecificNumberOfBytes = new ReturnBytes_BytesInt_Delegate((x,y) => { return VISAClass.Query_SpecificNumberOfBytes(x,y); });
+            VISA.Write = new StringDelegate((x) => { return VISAClass.Write(x); });
+            VISA.Read = new ReturnStringDelegate(() => { return VISAClass.Read(); });
+            return VISA;
         }
     }
 }
